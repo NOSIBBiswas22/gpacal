@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Academic Analytics Pro</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #6366f1;
+            --primary-hover: #4f46e5;
+            --bg: #f8fafc;
+            --card-bg: #ffffff;
+            --text-main: #1e293b;
+            --text-muted: #64748b;
+            --danger: #ef4444;
+            --success: #10b981;
+            --border: #e2e8f0;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--bg);
+            color: var(--text-main);
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 600px;
+            background: var(--card-bg);
+            padding: 2rem;
+            border-radius: 20px;
+            box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.05);
+            border: 1px solid var(--border);
+        }
+
+        /* Tab Styling */
+        .tabs {
+            display: flex;
+            background: var(--bg);
+            padding: 4px;
+            border-radius: 12px;
+            margin-bottom: 2rem;
+        }
+
+        .tab {
+            flex: 1;
+            padding: 10px;
+            text-align: center;
+            cursor: pointer;
+            border-radius: 8px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            transition: all 0.2s;
+            color: var(--text-muted);
+        }
+
+        .tab.active {
+            background: white;
+            color: var(--primary);
+            box-shadow: 0 4px 6px -1px rgba(0,0,0,0.1);
+        }
+
+        header h1 { font-size: 1.5rem; margin: 0; text-align: center; }
+        header p { text-align: center; color: var(--text-muted); font-size: 0.85rem; margin-bottom: 1.5rem; }
+
+        .input-group-header {
+            display: grid;
+            grid-template-columns: 2fr 1.5fr 40px;
+            gap: 12px;
+            padding: 0 10px 8px;
+            font-size: 0.7rem;
+            font-weight: 700;
+            color: var(--text-muted);
+            text-transform: uppercase;
+        }
+
+        .row {
+            display: grid;
+            grid-template-columns: 2fr 1.5fr 40px;
+            gap: 12px;
+            margin-bottom: 12px;
+            animation: slideIn 0.3s ease-out;
+        }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateX(-10px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        input {
+            padding: 12px;
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            outline: none;
+            transition: border 0.2s;
+        }
+
+        input:focus { border-color: var(--primary); }
+
+        .btn-del {
+            background: none; border: none; color: #cbd5e1;
+            cursor: pointer; font-size: 1.5rem; transition: color 0.2s;
+        }
+        .btn-del:hover { color: var(--danger); }
+
+        .actions { display: flex; gap: 10px; margin-top: 1rem; }
+        
+        button.main {
+            flex: 2; background: var(--primary); color: white;
+            border: none; padding: 14px; border-radius: 10px;
+            font-weight: 600; cursor: pointer;
+        }
+
+        button.add {
+            flex: 1; background: white; color: var(--primary);
+            border: 1.5px solid var(--primary); padding: 14px;
+            border-radius: 10px; font-weight: 600; cursor: pointer;
+        }
+
+        .result-box {
+            margin-top: 2rem;
+            padding: 1.5rem;
+            background: #f1f5f9;
+            border-radius: 15px;
+            text-align: center;
+            display: none;
+        }
+
+        .res-val { font-size: 2.5rem; font-weight: 700; color: var(--primary); display: block; }
+        .res-lbl { font-size: 0.75rem; font-weight: 600; color: var(--text-muted); text-transform: uppercase; }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <header>
+        <h1>Academic Calculator</h1>
+        <p id="sub-text">Calculate your Semester GPA (SGPA)</p>
+    </header>
+
+    <div class="tabs">
+        <div class="tab active" onclick="switchTab('sgpa')">SGPA (Semester)</div>
+        <div class="tab" onclick="switchTab('cgpa')">CGPA (Cumulative)</div>
+    </div>
+
+    <div class="input-group-header">
+        <span id="col-1">Credits</span>
+        <span id="col-2">SGPA / Points</span>
+        <span></span>
+    </div>
+
+    <div id="wrapper">
+        <div class="row">
+            <input type="number" step="0.5" placeholder="Credits" class="in-1">
+            <input type="number" step="0.01" placeholder="Point" class="in-2">
+            <button class="btn-del" onclick="this.parentElement.remove()">×</button>
+        </div>
+    </div>
+
+    <div class="actions">
+        <button class="add" onclick="addRow()">+ Add Row</button>
+        <button class="main" onclick="calculate()">Calculate Result</button>
+    </div>
+
+    <div id="result-area" class="result-box">
+        <span class="res-lbl" id="res-type">SGPA</span>
+        <span id="final-val" class="res-val">0.00</span>
+    </div>
+</div>
+
+<script>
+    let currentMode = 'sgpa';
+
+    function switchTab(mode) {
+        currentMode = mode;
+        document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+        event.target.classList.add('active');
+        
+        document.getElementById('sub-text').innerText = mode === 'sgpa' ? 'Calculate your Semester GPA (SGPA)' : 'Calculate your Overall GPA (CGPA)';
+        document.getElementById('col-1').innerText = 'Credits';
+        document.getElementById('col-2').innerText = mode === 'sgpa' ? 'Grade Point' : 'Semester SGPA';
+        document.getElementById('res-type').innerText = mode.toUpperCase();
+        document.getElementById('result-area').style.display = 'none';
+    }
+
+    function addRow() {
+        const div = document.createElement('div');
+        div.className = 'row';
+        div.innerHTML = `
+            <input type="number" step="0.5" placeholder="Credits" class="in-1">
+            <input type="number" step="0.01" placeholder="${currentMode === 'sgpa' ? 'Point' : 'SGPA'}" class="in-2">
+            <button class="btn-del" onclick="this.parentElement.remove()">×</button>
+        `;
+        document.getElementById('wrapper').appendChild(div);
+    }
+
+    function calculate() {
+        const cInputs = document.querySelectorAll('.in-1');
+        const pInputs = document.querySelectorAll('.in-2');
+        
+        let weightedSum = 0;
+        let totalC = 0;
+
+        cInputs.forEach((input, i) => {
+            const c = parseFloat(input.value);
+            const p = parseFloat(pInputs[i].value);
+            if (!isNaN(c) && !isNaN(p)) {
+                weightedSum += (c * p);
+                totalC += c;
+            }
+        });
+
+        if (totalC > 0) {
+            const final = (weightedSum / totalC).toFixed(2);
+            document.getElementById('final-val').innerText = final;
+            document.getElementById('result-area').style.display = 'block';
+            document.getElementById('final-val').style.color = final >= 3.5 ? 'var(--success)' : 'var(--primary)';
+        } else {
+            alert("Please fill in at least one row.");
+        }
+    }
+</script>
+
+</body>
+</html>
